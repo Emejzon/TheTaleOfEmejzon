@@ -1,14 +1,13 @@
 #!/usr/bin/env swipl
-% The Tale of Amazon (text-based adventure game)
+% The Tale of Emejzon (text-based adventure game)
 % by Jan Chudy
-% This is not a final version of the game. It has been modified for the specifications of semestral work.
-% Start with 'start.'
+% This is not a final version of the game.
+% Start the game with 'start.'
 
 %TODO map, story, weapon ammo...
 
 %IDEAS:
-%put the lightsaber to some use
-%place the crowbar somewhere
+% The women in the picture are Lux and her Mother. Gerald (the Vladimir's son) was Lux's father
 
 
 % -----------------------------------------------------------------
@@ -18,7 +17,7 @@
  :- retractall(playerPos(_)), retractall(itemPos(_, _)), retractall(playerHealth(_)), retractall(isAlive(_)), retractall(used(_)),
  	retractall(described(_)), retractall(isOpen(_)), retractall(eventCount(_, _)), retractall(teleportPos(_)).
 
-%teleport for testing DELETE THIS
+%teleport for testing [TODO]: DELETE THIS
 teletubbies(X) :-
 	playerPos(Y),
 	retract(playerPos(Y)),
@@ -33,7 +32,7 @@ exit :- halt.
 %Prints out the game intro and menu.
 intro :- 
 	nl,
-	write('Welcome to ''The Tale of Amazon'' text-based adventure game.'), nl,
+	write('Welcome to ''The Tale of Emejzon'' text-based adventure game.'), nl,
 	write('Reading ''help.'' is advised if you''re playing this game for the first time. :)'), nl, nl,
 	write('~ play.   -- Start the game.'), nl,
 	write('~ help.   -- Instructions and useful commands.'), nl,
@@ -42,10 +41,10 @@ intro :-
 %Prints out instructions and game commands.
 help :- 
 	nl,
-	write('The game should provide enough information for you to solve all puzzles (except hidden rooms)'), nl,
+	write('The game should provide enough information for you to solve all puzzles (except hidden rooms and secrets)'), nl,
 	write('and beat the game. If you''re stuck, try ''look.'' to look around the room (you might be'), nl,
 	write('missing something) or try going back to rooms you''ve already visited (you might have unlocked'), nl,
-	write('some closed doors or you have a game enabling you to proceed).'), nl, nl,
+	write('some closed doors or you have an item enabling you to proceed now).'), nl, nl,
 	write('COMMANDS:'), nl,
 	write('~ help.      -- Show this text again.'), nl,
 	write('~ look.     -- Look around the room. (Prints room description)'), nl,
@@ -70,7 +69,7 @@ play :-
 %Finishes the story.
 finis_the_game :- 
 	nl,
-	write('GAME OVER. Write ''exit.'' to quit the game.'), nl, !.
+	write('GAME OVER!'), nl, exit.
 
 %Instruction finishing game due to death of the player.
 kill_player :- 
@@ -120,7 +119,7 @@ move(Direction) :-
 move(_) :- 
 	write('You can''t go there.'), fail.
 
-%Direction commands.
+%Movement commands.
 north :- move(n).
 south :- move(s).
 east :- move(e).
@@ -164,9 +163,11 @@ listInventory(Inv) :-
 
 listInventory(_).
 
-%Instruction picking up an item.
+
+%special case for picking up the portal token:
+%take the toekn and set the portal destination position to current position
 take(Item) :- 
-	(Item = portal_token; Item = device),
+	(Item = portal_token; Item = device), 
 	playerPos(Room),
 	itemPos(Item,Room),
 	teleportPos(LastTpPos),
@@ -176,6 +177,7 @@ take(Item) :-
 	assert(itemPos(Item,inventory)),
 	write('Taken.'), nl, !.
 
+%Instruction picking up an item
 take(Item) :- 
 	playerPos(Room),
 	itemPos(Item,Room),
@@ -242,6 +244,8 @@ incCounter(Event) :-
 	retract(eventCount(Event,Cnt)),
 	assert(eventCount(Event,Cnt2)).
 
+
+
 % -----------------------------------------------------------------
 %  All paths between rooms/places and items needed to enter.
 %  Path description: path(X,Y,Z). where:
@@ -258,19 +262,18 @@ path(home, _, s) :- write('You looked outside the window and you see... black. N
 path(home, beginning, n) :- used(remote), 
 	write('You approached the television. The sound... some kind of brown noise, but not stable. It doesn''t sound like anything familiar. Do I hear voices there?! You put your ear on the screen, but it''s not solid. The screen is somehow slimy, as if it was made of jelly. Severe pain struck your head. You feel like the screen is pulling you in. Bright light fills the room and you can''t see anything so you closes your eyes in order to protect them. The noise is unbearable now and you hear people scream in agony. You''re about to loose your consciousness.'), nl,nl,
 	write('Suddenly it stops. The pain is gone. You can hear... breeze and birds? You smell fresh air and feel warm sun on your face. It''s daytime, apparently. You''re trying to open your eyes but they need to adapt to the light. Where are we?'), nl,
-	write('You are standing on a path leading to the near forest.  Behind you is a giant gate. It must be a town or something. Well protected town considering the giant wall around it. Wait a minute... Which towns have walls around them these days? Looks like you''ve just left the town. What is going on? Oh and by the way... You look like a aristocratic pilgrim in that clothes. Do something about it.'), nl, nl,
+	write('You are standing on a path leading to the near forest.  Behind you is a giant gate. It must be a town or something. A well protected town considering the giant wall around it. Wait a minute... Which towns have walls around them these days? Looks like you''ve just left the town. What is going on? Oh and by the way... You look like a aristocratic pilgrim in that clothes. Do something about it.'), nl, nl,
 	retract(itemPos(swatter, _)).
 path(home, beginning, n) :- itemPos(remote,inventory), write('You approached the television. It might need some input. It doesn''t look like it''s connected to anything. What does the remote do then?'), nl, !, false.
 path(home, beginning, n) :- write('You approached the television. It might need some input. It doesn''t look like it''s connected to anything.'), nl, !, false.
 
-%path(beginning, _, s) :- write('The gate has to be opened from inside. You knocked on it but nothing happens.'), nl, !, false.
 path(beginning, old_tree, n).
 
 path(old_tree, beginning, s).
 path(old_tree, village_entrance, n) :- described(claptrap).
 path(old_tree, village_entrance, n) :- write('You have left the shadows of the forest and you are approaching a smaller village. It''s not that far from the forest. It''s surounded by palisade, but it has no gate. There are some houses and a church apparently. And... something is heading your way. It is deffinitaly not a person. It''s a shorter... thingy..? It''s some kind of a yellow box on a weheel... with hands? Is that a robot?! Hope you have a weapon or something.'), nl, 
 	write('It''s indeed a robot! As it is getting closer, you can recognize an antena and some kind of... mechanical eye in the center of the wierd looking one-wheeled box.'), nl, nl,
-	write('"Hello! Allow me to introduce myself - I am a CL4P-TP steward bot, but my friends call me Claptrap! Or they would, if any of them were still alive. Or had existed in the first place! Oh you must be the mighty Amazon! Or at least you look like the King has described him on his ECHO Recorder. They have this odd ECHO Recorders with text in them, how silly is that? Anyways, he sure awaits you! Now come, follow me to my kingdom. I will be your wise leader, and you shall be my fearsome minion!"'), nl, nl,
+	write('"Hello! Allow me to introduce myself - I am a CL4P-TP steward bot, but my friends call me Claptrap! Or they would, if any of them were still alive. Or had existed in the first place! Oh you must be the mighty Emejzon! Or at least you look like the King has described him on his ECHO Recorder. They have this odd ECHO Recorders with text in them, how silly is that? Anyways, he sure awaits you! Now come, follow me to my kingdom. I will be your wise leader, and you shall be my fearsome minion!"'), nl, nl,
 	write('...and he''s buzzing back to the village. That was wierd. But I guess there''s nowhere else to go.'), nl, assert(described(claptrap)).
 path(old_tree, up_tree, u).
 path(old_tree, to_xwing, e) :- isOpen(to_xwing).
@@ -297,7 +300,7 @@ path(village_well, in_well, d) :- eventCount(wellEnter,3), write('I KNOW you don
 path(village_well, in_well, d) :- eventCount(wellEnter,4), write('Have you considered that this might not be the right way?'), nl, incCounter(wellEnter), !, false.
 path(village_well, in_well, d) :- eventCount(wellEnter,5), write('You will die if you jump down the well... trust me.'), nl, incCounter(wellEnter), !, false.
 path(village_well, in_well, d) :- eventCount(wellEnter,6), write('You can''t say I didn''t try to stop you... Are you 100% sure you want this?'), nl, incCounter(wellEnter), !, false.
-path(village_well, in_well, d) :- eventCount(wellEnter,6), write('Well then... You jumped down the well and died of horrible death. Happy now?'), nl, kill_player.
+path(village_well, in_well, d) :- eventCount(wellEnter,7), write('Well then... You jumped down the well and died of horrible death. Happy now?'), nl, kill_player.
 path(village_well, parsons_house, w) :- itemPos(golden_key,inventory).
 path(village_well, parsons_house, w) :- write('The door is locked.'), nl, !, false.
 path(village_well, village_north, n).
@@ -313,7 +316,6 @@ path(church, _, n) :- write('You approached the bookshelf. It is full of books. 
 path(adytum, church, e).
 
 path(in_well, village_well, u).
-%path(in_well, TODO, n) :- !, false.
 
 path(parsons_house, village_well, e).
 
@@ -321,7 +323,7 @@ path(village_north, village_well, s).
 path(village_north, old_house1, e).
 path(village_north, church, w).
 path(village_north, _, n) :- described(blockade), itemPos(matches,claptrap), itemPos(lamp,inventory), write('"Hey, minion! Looks like you''ve found a lamp. Here you could use this matches which I totally didn''t steal from the parson''s house."'), nl, retract(itemPos(matches,claptrap)), assert(itemPos(matches,village_north)), !, false.
-path(village_north, _, n) :- described(blockade), write('"Hey minion! If you see any bandits, make sude you kill them."'), nl, !, false.
+path(village_north, _, n) :- described(blockade), write('"Hey minion! If you see any bandits, make sure you kill them."'), nl, !, false.
 path(village_north, _, n) :- itemPos(matches,claptrap), itemPos(lamp,inventory), write('"Minion! I''m sorry but you can''t go through here. I had to block the entrance because of the bandit raids from the castle during nights! Those bandits really have it for us Claptraps. Using us as a target practice is not part of our programming! Oh and it looks like you''ve found a lamp. Here you could use this matches which I totally didn''t steal from the parson''s house."'), nl, assert(described(blockade)), retract(itemPos(matches,claptrap)), assert(itemPos(matches,village_north)), !, false.
 path(village_north, _, n) :- write('"Minion! I''m sorry but you can''t go through here. I had to block the entrance because of the bandit raids from the castle during nights! Those bandits really have it for us Claptraps. Using us as a target practice is not part of our programming!"'), nl, assert(described(blockade)), !, false.
 
@@ -332,19 +334,18 @@ path(old_house2, old_house1, d).
 
 path(woodcutter_house, village_well, w).
 
-%added
 path(in_well, well_center, n).
 path(well_center, in_well, s).
 path(well_center, well_north, n).
 path(well_center, well_east, e).
-path(well_center, well_west, w) :- isAlive(zombie), itemPos(crowbar,inventory), write('A Zombie! Smack it with the crowbar! SMACK SMACK SMAAAAAAC!!! Congrats, you killed the zombie.'), nl, retract(isAlive(zombie)).
+path(well_center, well_west, w) :- isAlive(zombie), itemPos(crowbar,inventory), write('A zombie! Smash it with the crowbar! SMASH SMASH SMEEAAAASH!!! Congrats, you killed the zombie.'), nl, write('Look the zombie dropped some meat!'), nl, retract(isAlive(zombie)), assert(itemPos(rotten_flesh,well_west)).
 path(well_center, well_west, w) :- isAlive(zombie), write('A Zombie! You don''t have anything to kill it with. It deals damage to you and you''ve left the room.'), nl, takeDamage, !, false.
 path(well_center, well_west, w).
 path(well_north, well_center, s).
 path(well_east, well_center, w).
 path(well_west, well_center, e).
 path(beginning, larkinge, s) :- itemPos(lightsaber,inventory), write('You burned the gate with the lightsaber. Now you can Enter! Unfortunately, the story ends here. YOU WON, Traveler!'), nl, !, finis_the_game.
-path(beginning, larkinge, s) :- write('The gate has to be opened from inside. You knocked on it but nothing happens.'), nl, !, false.
+path(beginning, larkinge, s) :- write('The gate needs to be opened from inside. You knocked on it but nothing happens.'), nl, !, false.
 
 % -----------------------------------------------------------------
 %  All room descriptions.
@@ -377,7 +378,6 @@ posName(church) :- write('[Church]'), nl.
 posName(adytum) :- write('[Church - Adytum]'), nl.
 posName(woodcutter_house) :- write('[Woodcutter''s House]'), nl.
 posName(in_well) :- write('[Inside the Well]'), nl.
-%added
 posName(well_center) :- write('[Tunnel Crossing]'), nl.
 posName(well_north) :- write('[North Tunnel]'), nl.
 posName(well_east) :- write('[East Tunnel]'), nl.
@@ -386,9 +386,9 @@ posName(well_west) :- write('[West Tunnel]'), nl.
 
 describe(home) :-
 	isAlive(fly),
-	write('You are in a dark room. There is a television on north side lightning the room a bit. Only flickering statics. Maybe no input? There''s a door on the east side of the room and a window on the south. Oh and there''s a damn fly flying around your face.'), nl.
+	write('You are in a dark room. There is a television on the north side lightning the room a bit. Only flickering statics. Maybe no input? There''s a door on the east side of the room and a window on the south. Oh and there''s a damn fly flying around your face.'), nl.
 describe(home) :-
-	write('You are in a dark room. There is a television on north side lightning the room a bit. Only flickering statics. Maybe no input? There''s a door on the east side of the room and a window on the south.'), nl.
+	write('You are in a dark room. There is a television on the north side lightning the room a bit. Only flickering statics. Maybe no input? There''s a door on the east side of the room and a window on the south.'), nl.
 
 describe(beginning) :-
 	assert(described(beginning)),
@@ -411,7 +411,7 @@ describe(up_tree) :-
 	assert(isOpen(to_xwing)).
 
 describe(up_tree) :-
-	write('You are on the old tree and you can see all around you. There is a town to the South... Larkinge! Of course! A smaller village lies North of you. But... what is that? There''s smoke rising from the forest to the East. I can see there something. Is that...? Oh, no way! It can''t be! This can''t be true.'), nl,
+	write('You are on the old tree and you can see all around you. There is a town to the South... Larkinge! Of course! A smaller village lies North of you. But... what is that? There''s smoke rising from the forest to the East. I can see something there. Is that...? Oh, no way! It can''t be! This can''t be true.'), nl,
 	assert(isOpen(to_xwing)).
 
 describe(to_xwing) :-
@@ -445,16 +445,16 @@ describe(village_well) :-
 describe(parsons_house) :-
 	itemPos(rope,parsons_house),
 	write('A small room with a... dead body hanging on a rope. The person has a black habit, must be the parson. Did he kill himself? How was he locked from the outside? Nevertheless, the rope could come in handy.'), nl.
-	% when you drop the rope in parsons house, the parson is hanging again... should be fixed in the future.
+	% [TODO]: when you drop the rope in parsons house, the parson is hanging again... should be fixed in the future.
 
 describe(parsons_house) :-
 	write('A small room with the parson''s dead body on the floor.'), nl.
 
 describe(woodcutter_house) :-
-	write('It''s a humble home for a humble man... A lot of wooden furniture. Home-crafted I''d say. A lot of saws and axes around as well as joiner''ss tools.'), nl.
+	write('It''s a humble home for a humble man... A lot of wooden furniture. Home-crafted I''d say. A lot of saws and axes around as well as joinery tools.'), nl.
 
 describe(village_north) :-
-	write('There is another village''s entrance from the north side. The entrance is blocked with wood and rocks though. Claptrap is standing next to the blockade. There is the Church on the west. It is wooden and it looks very old. It might be the first structure at the village. There is above the door: "Only the one with truth in his heart shall enter". Was it in the Bible somewhere? It does''n seem like a verse. There is a two-floored house to the east of you. A big family or someone rich lived there apparently.'), nl.
+	write('There is another village''s entrance from the north side. The entrance is blocked with wood and rocks though. Claptrap is standing next to the blockade. There is the Church on the west. It is wooden and it looks very old. It might be the first structure at the village. There is a sign above the door: "Only the one with truth in his heart shall enter". Was it in the Bible somewhere? It does''n seem like a verse. There is a two-floored house to the east of you. A big family or someone rich lived there apparently.'), nl.
 
 describe(old_house1) :-
 	write('First floor of the old house. There is a bigger table with wooden chairs in the middle of the room. Some dishes are still on the table. There are also some wooden benches by the wall. They had a clay fireplace here. A staircase leads to the second floor.'), nl.
@@ -476,13 +476,10 @@ describe(adytum) :-
 describe(adytum) :-
 	write('I can''t see anything. It''s too dark. There are door behind me to the east.'), nl.
 
-%TODO: in_well
-
-%added
 describe(in_well) :-
 	write('The light from outside shines from above you. There is a tunnel in front of you leading north.'), nl.
 describe(well_center) :-
-	write('A crossing of four tunnels. Each on one cardinal. The the village''s well should be to the south of you.'), nl.
+	write('A crossing of four tunnels. Each on one cardinal. The village''s well should be to the south of you.'), nl.
 describe(well_north) :-
 	write('End of the tunnel. You came from the South.'), nl.
 describe(well_east) :-
@@ -493,6 +490,7 @@ describe(well_west) :-
 describe(_) :- write('There is nothing special about this place. Which is odd... That might be wrong. Consider contacting the creator of this game.'), nl.
 
 
+%%%% THIS IS THE ENDING OG THE HISTORICALLY FIRST ITERATION OF THE GAME:
 %% describe(cave) :-
 %% 	write('There''s literally nothing inside this cave...'), nl,
 %% 	finis_the_game, !.
@@ -518,8 +516,6 @@ itemPos(oil, woodcutter_house).
 itemPos(lamp, old_house2).
 itemPos(potion, old_house1).
 itemPos(matches, claptrap).
-itemPos(device, adytum).
-%added
 itemPos(crowbar,well_east).
 
 
@@ -537,11 +533,11 @@ describeItem(photo) :-
 
 describeItem(old_letter) :-
 	write('Old letter written on some kind of old paper. Definitely not a right place for such an item. It''s pretty devastated. Also... it has blood stains on it?! It reads:'), nl, nl, nl,
-	write('"Dear Sir Amazon'), nl, nl,
-	write('It has been a long time since we last met. I am still very grateful for what you have done for me and people of my kingdom. Yet, I have to write you in an unfortunate circumstances. Dark times fell upon this lands. The darkness penetrated the walls of my castle and casted everything in a blanket of missery. We fought and won the battle. Many of my men died that day, as well as my only son, Gerald, who stood braverly by my side. I have never seen anything like this. It is not an army we fought, but a sorcery itself. Kingdom is weakend and the enemy has cursed us. We cannot hold any longer. You are my only hope, Sir Amazon. Come to my kingdom and save my people.'), nl,nl,
+	write('"Dear Sir Emejzon'), nl, nl,
+	write('It has been a long time since we last met. I am still very grateful for what you have done for me and people of my kingdom. Yet, I have to write you in an unfortunate circumstances. Dark times fell upon this lands. The darkness penetrated the walls of my castle and casted everything in a blanket of missery. We fought and won the battle. Many of my men died that day, as well as my only son, Gerald, who stood braverly by my side. I have never seen anything like this. It is not an army we fought, but a sorcery itself. Kingdom is weakend and the enemy has cursed us. We cannot hold any longer. You are my only hope, Sir Emejzon. Come to my kingdom and save my people.'), nl,nl,
 	write('Vladimir, King of Hevia'),nl,
-	write('December, 1205"'),nl,nl,nl,
-	write('... December 1205, King Vladimir, Hevia, battle, darkness, Sir Amazon... How is this thing here? Did I write this? Who''s Amazon and Vladimir?'),nl.
+	write('December 11, 1205"'),nl,nl,nl,
+	write('... December 1205, King Vladimir, Hevia, battle, darkness, Sir Emejzon... How is this thing here? Did I write this? Who''s Emejzon and Vladimir?'),nl.
 
 describeItem(remote) :- 
 	eventCount(remoteExamine,0),
@@ -619,6 +615,9 @@ describeItem(device) :- describeItem(portal_token).
 describeItem(portal_token) :-
 	write('A little round-shaped device of metal material. It has a glass chamber in the centre with some kind of blue mist concentrated in one point at the glass chamber. There is a text on the metal perimeter of the device: "ASQTC Prototype"'), nl.
 
+describeItem(rotten_flesh) :-
+	write('This sure is not a delicious rib-eye steak. I wouldn''t eat this.'), nl.
+
 describeItem(_) :- write('There is nothing special about this item.'),nl.
 
 % -----------------------------------------------------------------
@@ -628,7 +627,6 @@ describeItem(_) :- write('There is nothing special about this item.'),nl.
 % -----------------------------------------------------------------
 isAlive(fly).
 isAlive(turret).
-%added
 isAlive(zombie).
 
 % -----------------------------------------------------------------
@@ -645,7 +643,7 @@ kill :-
 	playerPos(home),
 	isAlive(fly),
 	itemPos(swatter,inventory),
-	write('You swing the swatter with ease. Fly dissolves midair as the swatter "whooshes" through the air. The swapper sure is magical.'), nl,
+	write('You swing the swatter with ease. Fly dissolves midair as the swatter "whooshes" through the air. The swatter sure is magical.'), nl,
 	retract(isAlive(fly)), !.
 
 kill :-
@@ -665,7 +663,7 @@ kill :-
 kill :-
 	playerPos(village_north),
 	(itemPos(the_stick_of_truth,inventory);itemPos(stick,inventory)),
-	write('Hmmm... Kill Claptrap? What you gonna throw a stick at him?'), nl, !.
+	write('Hmmm... Kill Claptrap? You monster! And are you going to throw a stick at him or what?'), nl, !.
 
 kill :-
 	playerPos(village_north),
@@ -690,6 +688,8 @@ usable(rope).
 usable(book).
 usable(device).
 usable(portal_token).
+usable(rotten_flesh).
+usable(rib_eye_steak).
 
 useItem(potion) :-
 	write('You drank the potion. It tastes like fresh strawberries.'), nl,
@@ -731,7 +731,8 @@ useItem(book) :-
 	write('"...ASQTC should be more publicly affordable mean of transport than ASHPD..."'), nl,
 	write('"...Caroline suggested that the name ''Aperture Science Quantum Tunneling Connector'' wouldn''t appeal to public. She uses ''Portal Token'' instead. How childish..."'), nl,
 	write('"...ASQTC is connected with its only Quantum Tunnel Panel, which has to be installed by ASQTC''s user. Quantum Tunnel Panel has to be installed on a vertical surface or facing down..."'), nl,
-	write('"...dropping ASQTC creates a temporary Quantum Tunnel which leads to Source Quantum Tunnel Panel..."'), nl,
+	write('"...using ASQTC creates a temporary Quantum Tunnel which leads to Source Quantum Tunnel Panel..."'), nl,
+	write('"...later version of ASQTC was developed in a way it remembers where it was picked up and the end portal appears above that place..."'), nl,
 	write('"...Test Subject #042 failed to use the ASQTC. ASQTC wasn''t able to activate after tapping it with a beak..."'), nl,
 	write('"...Test Subject #188 destroyed the ASCTC after accidentally stepping on the device..."'), nl,
 	write('"...Test Subject #221 died getting stuck in the Quantum Tunnel after temporary tunnel deactivation..."'), nl,
@@ -745,23 +746,28 @@ useItem(device) :- useItem(portal_token).
 useItem(portal_token) :- 
 	playerPos(CurrentPosition), 
 	write('You threw the small device to the ground under you emerging a blue portal under your feet. As you passed through the portal you fell on the ground seing an orange portal closing above your head.'), nl,
-	retract(playerPos(CurrentPosition)), %assert(playerPos(adytum)), posName(adytum). 
-	%added
+	retract(playerPos(CurrentPosition)),
 	teleportPos(WhereTo),
 	assert(playerPos(WhereTo)), posName(WhereTo).
 
+useItem(rotten_flesh) :-
+	write('You put the piece of meat in your mouth. The taste is sweet at first, but... the after taste... yuck!'), nl,
+	takeDamage.
 
-%TODO ussage of portal and the device
+useItem(rib_eye_steak) :-
+	write('You ate the rib eye steak. This is something to live for, isn''t it? D-E-L-I-C-I-O-U-S!'), nl,
+	heal_player(2),
+	retract(itemPos(rib_eye_steak,inventory)).
 
 
 % -----------------------------------------------------------------
-%  Player's current possition. CAN'T HAVE MORE THAN ONE! BE CAREFUL!
+%  Player's current possition. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
 % -----------------------------------------------------------------
 playerPos(home).
 
 
 % -----------------------------------------------------------------
-%  Player's current health. CAN'T HAVE MORE THAN ONE! BE CAREFUL!
+%  Player's current health. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
 % -----------------------------------------------------------------
 playerHealth(1).
 
@@ -775,7 +781,13 @@ craftingRecipe(lamp,oil) :-
 	retract(itemPos(oil,inventory)), assert(used(oil)).
 
 craftingRecipe(lamp,matches) :- 
-	used(oil), retract(itemPos(matches,inventory)), assert(used(matches)).
+	used(oil), retract(itemPos(matches,inventory)),
+	assert(used(matches)), assert(itemPos(device,adytum)).
+
+craftingRecipe(rotten_flesh,potion) :-
+	write('How do you even come up with these combinations?'), nl,
+	retract(itemPos(potion,inventory)), retract(itemPos(rotten_flesh,inventory)),
+	assert(itemPos(rib_eye_steak,inventory)).
 
 
 % -----------------------------------------------------------------

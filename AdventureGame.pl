@@ -8,6 +8,8 @@
 
 %IDEAS:
 % The women in the picture are Lux and her Mother. Gerald (the Vladimir's son) was Lux's father
+% The Castle is to the north, make a path there under the ground (tunels)
+% Make a subplot in Larkinge -> enables you to continue to the north
 
 
 % -----------------------------------------------------------------
@@ -22,6 +24,10 @@ teletubbies(X) :-
 	playerPos(Y),
 	retract(playerPos(Y)),
 	assert(playerPos(X)).
+
+%item getter for testing [TODO]: DELETE THIS
+gibme(X) :-
+	assert(itemPos(X,inventory)).
 
 %Runs the intro with menu.
 start :- intro.
@@ -245,7 +251,6 @@ incCounter(Event) :-
 	assert(eventCount(Event,Cnt2)).
 
 
-
 % -----------------------------------------------------------------
 %  All paths between rooms/places and items needed to enter.
 %  Path description: path(X,Y,Z). where:
@@ -347,15 +352,13 @@ path(well_west, well_center, e).
 path(beginning, larkinge, s) :- itemPos(lightsaber,inventory), write('You burned the gate with the lightsaber. Now you can Enter! Unfortunately, the story ends here. YOU WON, Traveler!'), nl, !, finis_the_game.
 path(beginning, larkinge, s) :- write('The gate needs to be opened from inside. You knocked on it but nothing happens.'), nl, !, false.
 
+
 % -----------------------------------------------------------------
-%  All room descriptions.
-%  Room description: 
-%	posName(X) :- write(N). 
-%	describe(X) :- write(D). 
-%	Where:
+%  All room printable names.
+%  Room name: posName(X) :- write(N). 
+%  Where:
 %       - X -> name of the room
 %		- N -> Printable name of the room
-%       - D -> text description of the room
 % -----------------------------------------------------------------
 posName(home) :- write('[Dark Room]'),nl.
 posName(beginning) :- described(beginning), write('[Larkinge Gate]'),nl.
@@ -384,6 +387,12 @@ posName(well_east) :- write('[East Tunnel]'), nl.
 posName(well_west) :- write('[West Tunnel]'), nl.
 
 
+% -----------------------------------------------------------------
+%  All room descriptions.
+%  Room description: describe(X) :- write(D). Where:
+%       - X -> name of the room
+%       - D -> text description of the room
+% -----------------------------------------------------------------
 describe(home) :-
 	isAlive(fly),
 	write('You are in a dark room. There is a television on the north side lightning the room a bit. Only flickering statics. Maybe no input? There''s a door on the east side of the room and a window on the south. Oh and there''s a damn fly flying around your face.'), nl.
@@ -488,12 +497,6 @@ describe(well_west) :-
 	write('End of the tunnel. You came from the East.'), nl.
 
 describe(_) :- write('There is nothing special about this place. Which is odd... That might be wrong. Consider contacting the creator of this game.'), nl.
-
-
-%%%% THIS IS THE ENDING OG THE HISTORICALLY FIRST ITERATION OF THE GAME:
-%% describe(cave) :-
-%% 	write('There''s literally nothing inside this cave...'), nl,
-%% 	finis_the_game, !.
 
 
 % -----------------------------------------------------------------
@@ -620,6 +623,7 @@ describeItem(rotten_flesh) :-
 
 describeItem(_) :- write('There is nothing special about this item.'),nl.
 
+
 % -----------------------------------------------------------------
 %  All monsters that are alive.
 %  Alive monsters: isAlive(X). Where:
@@ -628,6 +632,7 @@ describeItem(_) :- write('There is nothing special about this item.'),nl.
 isAlive(fly).
 isAlive(turret).
 isAlive(zombie).
+
 
 % -----------------------------------------------------------------
 %  All killing possibilities.
@@ -742,13 +747,15 @@ useItem(book) :-
 	write('Don''t make me to do that again...'), nl,
 	assert(described(book)), itemPos(device,POSITION), retract(itemPos(device,POSITION)), assert(itemPos(portal_token,POSITION)).
 
-useItem(device) :- useItem(portal_token).
+useItem(device) :- 
+	write('I don''t think we know how to use this device. Though, every device should be usable, right?'), nl.
 useItem(portal_token) :- 
-	playerPos(CurrentPosition), 
-	write('You threw the small device to the ground under you emerging a blue portal under your feet. As you passed through the portal you fell on the ground seing an orange portal closing above your head.'), nl,
+	playerPos(CurrentPosition),
+	writePortalUsageMsg,
 	retract(playerPos(CurrentPosition)),
 	teleportPos(WhereTo),
-	assert(playerPos(WhereTo)), posName(WhereTo).
+	assert(playerPos(WhereTo)), posName(WhereTo),
+	incCounter(portalUsed).
 
 useItem(rotten_flesh) :-
 	write('You put the piece of meat in your mouth. The taste is sweet at first, but... the after taste... yuck!'), nl,
@@ -758,18 +765,6 @@ useItem(rib_eye_steak) :-
 	write('You ate the rib eye steak. This is something to live for, isn''t it? D-E-L-I-C-I-O-U-S!'), nl,
 	heal_player(2),
 	retract(itemPos(rib_eye_steak,inventory)).
-
-
-% -----------------------------------------------------------------
-%  Player's current possition. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
-% -----------------------------------------------------------------
-playerPos(home).
-
-
-% -----------------------------------------------------------------
-%  Player's current health. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
-% -----------------------------------------------------------------
-playerHealth(1).
 
 
 % -----------------------------------------------------------------
@@ -798,7 +793,46 @@ craftingRecipe(rotten_flesh,potion) :-
 % -----------------------------------------------------------------
 eventCount(remoteExamine, 0).
 eventCount(wellEnter, 0).
+eventCount(portalUsed, 0).
 
 
-%added for the teleportation destination change...
+% -----------------------------------------------------------------
+%  Some helping instructions.
+% -----------------------------------------------------------------
+writePortalUsageMsg :-
+	eventCount(portalUsed,0),
+	write('You threw the small device to the ground emerging a blue portal under your feet. As you passed through the hole you fell on the ground seing an orange portal closing above your head.'), nl.
+writePortalUsageMsg :-
+	eventCount(portalUsed,1),
+	write('You threw device under your feet and landed on the other side of the portal. I see you''re getting hang of it.'), nl.
+writePortalUsageMsg :-
+	eventCount(portalUsed,2),
+	write('You used the portal and appeared somewhere else.'), nl.
+writePortalUsageMsg :-
+	eventCount(portalUsed,3),
+	write('You teleported somewhere else.'), nl.
+writePortalUsageMsg :-
+	write('*Teleported*'), nl.
+
+
+% -----------------------------------------------------------------
+%  Player's current possition. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
+% -----------------------------------------------------------------
+playerPos(home).
+
+% -----------------------------------------------------------------
+%  Player's current health. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
+% -----------------------------------------------------------------
+playerHealth(1).
+
+% -----------------------------------------------------------------
+%  Teleportation destination. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
+% -----------------------------------------------------------------
 teleportPos(adytum).
+
+
+
+%%%% THIS IS THE ENDING OG THE HISTORICALLY FIRST ITERATION OF THE GAME:
+%% describe(cave) :-
+%% 	write('There''s literally nothing inside this cave...'), nl,
+%% 	finis_the_game, !.

@@ -6,31 +6,11 @@
 
 %TODO map, story, weapon ammo...
 
-%IDEAS:
-% The women in the picture are Lux and her Mother. Gerald (the Vladimir's son) was Lux's father
-% The Castle is to the north, make a path there under the ground (tunels)
-% Make a subplot in Larkinge -> enables you to continue to the north
-
-
 % -----------------------------------------------------------------
 %  Initial texts and game mechanics.
 % -----------------------------------------------------------------
- :- dynamic playerPos/1, itemPos/2, playerHealth/1, isAlive/1, used/1, described/1, isOpen/1, eventCount/2, teleportPos/1.
- :- retractall(playerPos(_)), retractall(itemPos(_, _)), retractall(playerHealth(_)), retractall(isAlive(_)), retractall(used(_)),
- 	retractall(described(_)), retractall(isOpen(_)), retractall(eventCount(_, _)), retractall(teleportPos(_)).
-
-%teleport for testing [TODO]: DELETE THIS
-teletubbies(X) :-
-	playerPos(Y),
-	retract(playerPos(Y)),
-	assert(playerPos(X)).
-
-%item getter for testing [TODO]: DELETE THIS
-gibme(X) :-
-	assert(itemPos(X,inventory)).
-
 %Runs the intro with menu.
-start :- intro.
+start :- devCheats, intro.
 
 %Exits the game.
 exit :- halt.
@@ -40,9 +20,10 @@ intro :-
 	nl,
 	write('Welcome to ''The Tale of Emejzon'' text-based adventure game.'), nl,
 	write('Reading ''help.'' is advised if you''re playing this game for the first time. :)'), nl, nl,
-	write('~ play.   -- Start the game.'), nl,
-	write('~ help.   -- Instructions and useful commands.'), nl,
-	write('~ exit.   -- Exit the game.'), nl.
+	write('~ play   -- Start a new the game.'), nl,
+	write('~ load   -- Load saved game.'), nl,
+	write('~ help   -- Instructions and useful commands.'), nl,
+	write('~ exit   -- Exit the game.'), nl.
 
 %Prints out instructions and game commands.
 help :- 
@@ -52,25 +33,40 @@ help :-
 	write('missing something) or try going back to rooms you''ve already visited (you might have unlocked'), nl,
 	write('some closed doors or you have an item enabling you to proceed now).'), nl, nl,
 	write('COMMANDS:'), nl,
-	write('~ help.      -- Show this text again.'), nl,
-	write('~ look.     -- Look around the room. (Prints room description)'), nl,
-	write('~ n.     -- Go North.'), nl,
-	write('~ s.     -- Go South.'), nl,
-	write('~ e.     -- Go East.'), nl,
-	write('~ w.     -- Go West.'), nl,
-	write('~ u.     -- Go Up.'), nl,
-	write('~ d.     -- Go Down.'), nl,
-	write('~ take(ITEM).     -- Take ITEM from the room (if possible).'), nl,
-	write('~ drop(ITEM).     -- Drop ITEM from inventory (if possible).'), nl,
-	write('~ examine(ITEM).     -- Examine ITEM in inventory.'), nl,
-	write('~ use(ITEM).     -- Use ITEM in inventory (if possible).'), nl,
-	write('~ combine(ITEM,ITEM).     -- Combine ITEMS in inventory (if possible).'), nl,
-	write('~ inventory.     -- Prints all items in your inventory.'), nl,
-	write('~ kill.     -- Kills an enemy in the room if you have the right weapon in your inventory.'), nl.
+	write('~ help      -- Show this text again.'), nl,
+	write('~ save      -- Save the current state of the game.'), nl,
+	write('~ look      -- Look around the room. (Prints room description)'), nl,
+	write('~ north     -- Go North [short:n].'), nl,
+	write('~ south     -- Go South [short:s].'), nl,
+	write('~ eeast     -- Go East [short:e].'), nl,
+	write('~ wwest     -- Go West [short:w].'), nl,
+	write('~ up        -- Go Up [short:u].'), nl,
+	write('~ down      -- Go Down [short:d].'), nl,
+	write('~ take ITEM     -- Take ITEM from the room (if possible).'), nl,
+	write('~ drop ITEM     -- Drop ITEM from inventory (if possible).'), nl,
+	write('~ examine ITEM     -- Examine ITEM in inventory.'), nl,
+	write('~ use ITEM     -- Use ITEM in inventory (if possible).'), nl,
+	write('~ combine ITEM1 ITEM2     -- Combine ITEMS in inventory (if possible).'), nl,
+	write('~ inventory     -- Prints all items in your inventory [short:i].'), nl,
+	write('~ kill     -- Kills an enemy in the room if you have the right weapon in your inventory.'), nl.
 
 %Starts the story and asserts all stuff.
 play :-
+	consult("Saves/NewGame.pl"),
 	write('You are slowly waking up. You feel dizzy and you are lying on your back. You have a headache and your eyes can''t focus on anything. As you are trying to stand up, your senses are coming back to normal. There''s something in your pocket - piece of paper or a card? Try to look around.'), nl.
+
+load :-
+	exists_file("Saves/Save.pl"),
+	consult("Saves/Save.pl"),
+	write('SAVED GAME LOADED'), nl, !.
+	
+load :-
+	write('No saved data!'), nl, false.
+
+devCheats :-
+	exists_file("Saves/DevCheats.pl"),
+	consult("Saves/DevCheats.pl"), true.
+devCheats:- !.
 
 %Finishes the story.
 finis_the_game :- 
@@ -297,7 +293,7 @@ path(village_entrance, old_tree, s).
 path(village_entrance, village_well, n).
 
 path(village_well, woodcutter_house, e).
-path(village_well, in_well, d) :- used(rope).
+path(village_well, in_well, d) :- isOpen(in_well).
 path(village_well, in_well, d) :- eventCount(wellEnter,0), write('Are you sure?'), nl, incCounter(wellEnter), !, false.
 path(village_well, in_well, d) :- eventCount(wellEnter,1), write('I mean... It looks pretty deep and dark.'), nl, incCounter(wellEnter), !, false.
 path(village_well, in_well, d) :- eventCount(wellEnter,2), write('I think you don''t want to jump in there.'), nl, incCounter(wellEnter), !, false.
@@ -500,29 +496,6 @@ describe(_) :- write('There is nothing special about this place. Which is odd...
 
 
 % -----------------------------------------------------------------
-%  All items positions.
-%  Item position: itemPos(X,Y). Where:
-%       - X -> name of the item
-%       - Y -> name of the item position
-% -----------------------------------------------------------------
-itemPos(photo, inventory).
-itemPos(swatter, home).
-itemPos(old_letter, home).
-itemPos(remote, home).
-itemPos(stick, up_tree).
-itemPos(egg, rabbit_hole).
-itemPos(book, church).
-itemPos(golden_key, church).
-itemPos(rope, parsons_house).
-itemPos(page, parsons_house).
-itemPos(oil, woodcutter_house).
-itemPos(lamp, old_house2).
-itemPos(potion, old_house1).
-itemPos(matches, claptrap).
-itemPos(crowbar,well_east).
-
-
-% -----------------------------------------------------------------
 %  All item descriptions.
 %  Item description: describeItem(X) :- write(D). Where:
 %       - X -> name of the item
@@ -625,16 +598,6 @@ describeItem(_) :- write('There is nothing special about this item.'),nl.
 
 
 % -----------------------------------------------------------------
-%  All monsters that are alive.
-%  Alive monsters: isAlive(X). Where:
-%       - X -> name of the monster
-% -----------------------------------------------------------------
-isAlive(fly).
-isAlive(turret).
-isAlive(zombie).
-
-
-% -----------------------------------------------------------------
 %  All killing possibilities.
 %  Kill: kill :- @playerPos(X), @isAlive(Y) @itemPos(Z,inventory), write(M).
 %  Where:
@@ -712,7 +675,7 @@ useItem(the_stick_of_truth) :-
 useItem(crowbar) :-
 	playerPos(x_wing),
 	write('You are trying to open the cockpit with the crowbar. But after a while you break the window. You won''t believe what''s inside. I mean... it''s pretty easy to guess, but look for yourself.'), nl,
-	assert(itemPos(lightsaber,x_wing)), retract(itemPos(crowbar,inventory)).
+	assert(itemPos(lightsaber,x_wing)).
 
 useItem(crowbar) :-
 	playerPos(beginning),
@@ -724,7 +687,11 @@ useItem(crowbar) :-
 useItem(rope) :-
 	playerPos(village_well),
 	write('You tie the rope to the well''s wooden roof construction and threw it down the well. Now the way down looks possible.'), nl,
-	assert(used(rope)), retract(itemPos(rope,inventory)).
+	assert(isOpen(in_well)), retract(itemPos(rope,inventory)).
+
+useItem(rope) :-
+	playerPos(old_tree),
+	write('Are you trying to hang yourself? Is this game that hard?!'), nl.
 
 useItem(book) :-
 	described(book),
@@ -786,17 +753,6 @@ craftingRecipe(rotten_flesh,potion) :-
 
 
 % -----------------------------------------------------------------
-%  All event counters for repetitive events.
-%  Event counter: eventCount(X,Y). Where:
-%       - X -> name of the event.
-%		- Y -> counter.
-% -----------------------------------------------------------------
-eventCount(remoteExamine, 0).
-eventCount(wellEnter, 0).
-eventCount(portalUsed, 0).
-
-
-% -----------------------------------------------------------------
 %  Some helping instructions.
 % -----------------------------------------------------------------
 writePortalUsageMsg :-
@@ -815,20 +771,10 @@ writePortalUsageMsg :-
 	write('*Teleported*'), nl.
 
 
-% -----------------------------------------------------------------
-%  Player's current possition. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
-% -----------------------------------------------------------------
-playerPos(home).
 
-% -----------------------------------------------------------------
-%  Player's current health. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
-% -----------------------------------------------------------------
-playerHealth(1).
 
-% -----------------------------------------------------------------
-%  Teleportation destination. CAN'T HAVE MORE THAN ONE VALUE! BE CAREFUL!
-% -----------------------------------------------------------------
-teleportPos(adytum).
+newLine :-
+	nl.
 
 
 
@@ -836,3 +782,4 @@ teleportPos(adytum).
 %% describe(cave) :-
 %% 	write('There''s literally nothing inside this cave...'), nl,
 %% 	finis_the_game, !.
+

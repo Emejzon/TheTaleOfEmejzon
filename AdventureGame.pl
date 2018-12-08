@@ -20,7 +20,7 @@ intro :-
 	nl,
 	write('Welcome to ''The Tale of Emejzon'' text-based adventure game.'), nl,
 	write('Reading ''help.'' is advised if you''re playing this game for the first time. :)'), nl, nl,
-	write('~ play   -- Start a new the game.'), nl,
+	write('~ play   -- Start a new game.'), nl,
 	write('~ load   -- Load saved game.'), nl,
 	write('~ help   -- Instructions and useful commands.'), nl,
 	write('~ exit   -- Exit the game.'), nl.
@@ -38,8 +38,8 @@ help :-
 	write('~ look      -- Look around the room. (Prints room description)'), nl,
 	write('~ north     -- Go North [short:n].'), nl,
 	write('~ south     -- Go South [short:s].'), nl,
-	write('~ eeast     -- Go East [short:e].'), nl,
-	write('~ wwest     -- Go West [short:w].'), nl,
+	write('~ east     -- Go East [short:e].'), nl,
+	write('~ west     -- Go West [short:w].'), nl,
 	write('~ up        -- Go Up [short:u].'), nl,
 	write('~ down      -- Go Down [short:d].'), nl,
 	write('~ take ITEM     -- Take ITEM from the room (if possible).'), nl,
@@ -53,7 +53,7 @@ help :-
 %Starts the story and asserts all stuff.
 play :-
 	consult("Saves/NewGame.pl"),
-	write('You are slowly waking up. You feel dizzy and you are lying on your back. You have a headache and your eyes can''t focus on anything. As you are trying to stand up, your senses are coming back to normal. There''s something in your pocket - piece of paper or a card? Try to look around.'), nl.
+	write('You are slowly waking up. You feel dizzy and you are lying on your back. You have a headache and your eyes can''t focus on anything. As you are trying to stand up, your senses are returning back to normal. There''s something in your pocket - piece of paper or a card? Try to look around.'), nl.
 
 load :-
 	exists_file("Saves/Save.pl"),

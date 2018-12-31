@@ -18,6 +18,7 @@ itemPos(remote, home).
 itemPos(stick, up_tree).
 itemPos(egg, rabbit_hole).
 itemPos(book, church).
+itemPos(device,adytum).
 itemPos(golden_key, church).
 itemPos(rope, parsons_house).
 itemPos(page, parsons_house).

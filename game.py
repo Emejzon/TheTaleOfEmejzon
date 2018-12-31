@@ -24,7 +24,7 @@ def save_game():
     '''
     stats1 = ["playerPos","playerHealth", "isAlive", "used", "described", "isOpen", "teleportPos"]
     stats2 = ["itemPos", "eventCount"]
-    with open('Saves/Save.pl', 'w') as s:
+    with open('saves/Save.pl', 'w') as s:
         s.write(":- dynamic playerPos/1, itemPos/2, playerHealth/1, isAlive/1, used/1, described/1, isOpen/1, eventCount/2, teleportPos/1.\n\
 :- retractall(playerPos(_)), retractall(itemPos(_, _)), retractall(playerHealth(_)), retractall(isAlive(_)), retractall(used(_)),\n\
 \tretractall(described(_)), retractall(isOpen(_)), retractall(eventCount(_, _)), retractall(teleportPos(_)).\n")

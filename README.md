@@ -1,13 +1,7 @@
 # TheTaleOfEmejzon
 
 ## About the game (Spoiler-free)
-Text-based adventure game created in Prolog Logical programming language.
-* It's hard
-* Insane Puzzles
-* Funny references
-* Unexpected realism
-* Maybe it's more than a game
-* (It's going to be the first 3D text-based game, where the third dimension is outside your terminal window.)
+Small, unfinished, text-based adventure game created in Prolog Logical programming language.
 
 ![Start Menu](./img/start.png)
 ![Start Menu](./img/beginning.png)
@@ -56,8 +50,7 @@ Follow this [installation guide](https://github.com/yuce/pyswip/blob/master/INST
 
 #### Future TODO list:
 * Instruction autocomplete
-* Wrong instruction suggestion
+* Suggesting available instructions after incorrect instruction 
 
 #### Blue-sky TODO list:
 * Python Console GUI
-* From TEXT to 2D graphics
